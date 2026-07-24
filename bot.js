@@ -70,6 +70,16 @@ bot.on('polling_error', (error) => {
   console.error('Polling error:', error.message || error);
 });
 
+import http from 'http';
+
+const port = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Telegram Bot is running live 24/7!\n');
+}).listen(port, () => {
+  console.log(`🌐 Health check HTTP server listening on port ${port}`);
+});
+
 console.log('🤖 Telegram Store & Key Delivery Bot is starting...');
 
 // Cached Telegram file_id for instant video delivery
