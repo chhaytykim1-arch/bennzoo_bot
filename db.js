@@ -113,6 +113,21 @@ export async function setCategoryPhoto(categoryId, photoId) {
   return false;
 }
 
+export async function setCategoryMedia(categoryId, mediaId, mediaType = 'video') {
+  const db = await readDB();
+  const cat = db.categories.find(c => c.id === categoryId);
+  if (cat) {
+    if (mediaType === 'video') {
+      cat.video_id = mediaId;
+    } else {
+      cat.photo_id = mediaId;
+    }
+    await writeDB(db);
+    return true;
+  }
+  return false;
+}
+
 export async function getProductsByCategory(categoryId) {
   const db = await readDB();
   return (db.products || []).filter(p => p.category_id === categoryId);

@@ -24,6 +24,7 @@ import {
   addCategory,
   deleteCategory,
   setCategoryPhoto,
+  setCategoryMedia,
   getProductsByCategory,
   getProduct,
   addProduct,
@@ -363,7 +364,8 @@ bot.onText(/\/admin/, async (msg) => {
       { text: '🖼️ Set Photo', callback_data: 'admin_wiz_set_photo' }
     ],
     [
-      { text: '📋 List Products & Stock', callback_data: 'admin_list_products' }
+      { text: '🎥 Set Category Video', callback_data: 'admin_wiz_set_cat_video' },
+      { text: '📋 List Products', callback_data: 'admin_list_products' }
     ],
     [
       { text: '🗑️ Delete Item', callback_data: 'admin_wiz_delete' },
@@ -603,6 +605,26 @@ bot.on('photo', async (msg) => {
   bot.sendMessage(chatId, `💡 <b>Photo received!</b> Click <b>🖼️ Set Photo</b> in /admin to attach it to a product!`, { parse_mode: 'HTML' });
 });
 
+// Admin Photo / Video Listener for Category & Product Video Tutorials
+bot.on('video', async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  if (!(await isOwner(userId))) return;
+
+  const videoId = msg.video.file_id;
+  const state = adminState[userId];
+
+  if (state && state.action === 'awaiting_cat_video') {
+    const categoryId = state.categoryId;
+    await setCategoryMedia(categoryId, videoId, 'video');
+    delete adminState[userId];
+    return bot.sendMessage(chatId, `🎥 <b>Category Video Tutorial Attached Successfully!</b>\n\nUsers will now see this video preview whenever they click this category!`, { parse_mode: 'HTML' });
+  }
+
+  bot.sendMessage(chatId, `🎥 <b>Video Received!</b>\nVideo File ID: <code>${videoId}</code>\n\nClick <b>🎥 Set Category Video</b> in /admin to attach it to a category!`, { parse_mode: 'HTML' });
+});
+
 // Command: /broadcast <message>
 bot.onText(/\/broadcast\s+(.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -733,16 +755,37 @@ bot.on('callback_query', async (query) => {
       const categories = await getCategories();
       const cat = categories.find(c => c.id === categoryId);
       const productMarkup = await buildProductKeyboard(categoryId);
+      const catName = cat ? cat.name : 'Category';
 
-      if (cat && cat.photo_id) {
-        return bot.sendPhoto(chatId, cat.photo_id, {
-          caption: `📦 <b>Select a product in ${cat.name}:</b>`,
+      // 1. If Category has custom Video attached
+      if (cat && cat.video_id) {
+        return bot.sendVideo(chatId, cat.video_id, {
+          caption: `🌸 <b>${catName}</b>\n\nSelect a product:`,
           parse_mode: 'HTML',
           ...productMarkup
         });
       }
 
-      return bot.sendMessage(chatId, `📦 <b>Select a product below:</b>`, {
+      // 2. If Category has custom Photo attached
+      if (cat && cat.photo_id) {
+        return bot.sendPhoto(chatId, cat.photo_id, {
+          caption: `🌸 <b>${catName}</b>\n\nSelect a product:`,
+          parse_mode: 'HTML',
+          ...productMarkup
+        });
+      }
+
+      // 3. Fallback: Stream local preview video if present
+      const localVideoPath = path.join(__dirname, 'video_2026-07-23_16-32-58.mp4');
+      if (fs.existsSync(localVideoPath)) {
+        return bot.sendVideo(chatId, fs.createReadStream(localVideoPath), {
+          caption: `🌸 <b>${catName}</b>\n\nSelect a product:`,
+          parse_mode: 'HTML',
+          ...productMarkup
+        });
+      }
+
+      return bot.sendMessage(chatId, `📦 <b>Select a product in ${catName}:</b>`, {
         parse_mode: 'HTML',
         ...productMarkup
       });
@@ -1025,6 +1068,32 @@ bot.on('callback_query', async (query) => {
       const prod = await getProduct(productId);
       adminState[userId] = { action: 'awaiting_keys', productId };
       return bot.sendMessage(chatId, `🔑 <b>Send license keys for "${prod ? prod.name : 'Product'}" now:</b>\n\n<i>(Paste keys in chat. Separate multiple keys with commas or new lines!)</i>`, { parse_mode: 'HTML' });
+    }
+
+    // Admin Wizard: Set Category Video -> Select Category
+    if (data === 'admin_wiz_set_cat_video') {
+      if (!(await isOwner(userId))) return;
+      const categories = await getCategories();
+      if (categories.length === 0) {
+        return bot.sendMessage(chatId, `⚠️ <b>No categories exist yet!</b> Click ➕ Add Category first.`, { parse_mode: 'HTML' });
+      }
+      const inline_keyboard = categories.map(cat => ([{
+        text: `🎥 ${cat.name}`,
+        callback_data: `admin_sel_cat_vid_${cat.id}`
+      }]));
+      return bot.sendMessage(chatId, `🎥 <b>Select which category to attach a Video Tutorial to:</b>`, {
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard }
+      });
+    }
+
+    if (data.startsWith('admin_sel_cat_vid_')) {
+      if (!(await isOwner(userId))) return;
+      const categoryId = data.replace('admin_sel_cat_vid_', '');
+      const categories = await getCategories();
+      const cat = categories.find(c => c.id === categoryId);
+      adminState[userId] = { action: 'awaiting_cat_video', categoryId };
+      return bot.sendMessage(chatId, `🎥 <b>Send or upload the Video Tutorial for "${cat ? cat.name : 'Category'}" now!</b>\n\n<i>(Upload or forward your video to this chat now!)</i>`, { parse_mode: 'HTML' });
     }
 
     // Admin Wizard: Set Photo -> Select Product
