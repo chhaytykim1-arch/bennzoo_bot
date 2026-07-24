@@ -852,7 +852,7 @@ bot.on('callback_query', async (query) => {
 📱 <b>Instructions:</b>
 1. Scan the KHQR code using any Cambodian Banking App (ABA, ACLEDA, Sathapana, Wing, Bakong, etc.)
 2. Confirm payment of <b>$${khqrResult.amount.toFixed(2)}</b>
-3. Tap <b>✅ Verify Payment</b> below after completing payment.
+3. ⚡ <b>System will automatically detect payment and deliver your product instantly!</b>
       `;
 
       return bot.sendPhoto(chatId, khqrResult.qrBuffer, {
@@ -860,9 +860,6 @@ bot.on('callback_query', async (query) => {
         parse_mode: 'HTML',
         reply_markup: {
           inline_keyboard: [
-            [
-              { text: '✅ Verify Payment', callback_data: `verify_pay_${orderId}` }
-            ],
             [
               { text: '❌ Cancel Order', callback_data: `cancel_pay_${orderId}` }
             ]
