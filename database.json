@@ -18,10 +18,12 @@
       "id": "prod_1784802974860",
       "category_id": "cat_1784802939147",
       "name": "🔮 Fluorite FF iOS 1 Day",
-      "price": "$2.00",
-      "description": "VIP Key",
+      "price": "$0.02",
+      "description": "VIP Key (Test $0.02)",
       "keys": [
-        "alsdhakdlashdakjsdhjaskdjasjhd"
+        "TESTKEY-0.02-ACC-001",
+        "TESTKEY-0.02-ACC-002",
+        "TESTKEY-0.02-ACC-003"
       ],
       "media_path": "video_2026-07-23_16-32-58.mp4"
     }
