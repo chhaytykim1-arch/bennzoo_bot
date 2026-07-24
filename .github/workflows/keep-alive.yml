@@ -1,0 +1,32 @@
+name: Keep Render Bot Awake
+
+# Pings the Render service from GitHub's servers so the free tier never
+# sleeps. This must run OUTSIDE Render, because when Render freezes the
+# process, any internal self-ping timer freezes too and cannot wake it.
+
+on:
+  schedule:
+    # Every 5 minutes. GitHub may delay scheduled runs, but this is well
+    # under Render's ~15 min idle-sleep window.
+    - cron: "*/5 * * * *"
+  # Allow manual triggering from the Actions tab for testing.
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render service
+        run: |
+          echo "Pinging https://bennzoo-bot.onrender.com ..."
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 https://bennzoo-bot.onrender.com/ || echo "000")
+            echo "Attempt $i -> HTTP $code"
+            if [ "$code" != "000" ]; then
+              echo "Service responded. Awake."
+              exit 0
+            fi
+            echo "No response (service waking up). Retrying in 30s..."
+            sleep 30
+          done
+          echo "Service did not respond after retries, but wake request was sent."
