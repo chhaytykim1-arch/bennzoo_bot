@@ -1030,7 +1030,7 @@ bot.on('callback_query', async (query) => {
     }
 
     // Admin Wizard: Category Selected for Product Creation
-    if (data.startsWith('admin_sel_cat_')) {
+    if (data.startsWith('admin_sel_cat_') && !data.startsWith('admin_set_cat_video_')) {
       if (!(await isOwner(userId))) return;
       const categoryId = data.replace('admin_sel_cat_', '');
       const categories = await getCategories();
@@ -1079,7 +1079,7 @@ bot.on('callback_query', async (query) => {
       }
       const inline_keyboard = categories.map(cat => ([{
         text: `🎥 ${cat.name}`,
-        callback_data: `admin_sel_cat_vid_${cat.id}`
+        callback_data: `admin_set_cat_video_${cat.id}`
       }]));
       return bot.sendMessage(chatId, `🎥 <b>Select which category to attach a Video Tutorial to:</b>`, {
         parse_mode: 'HTML',
@@ -1087,9 +1087,9 @@ bot.on('callback_query', async (query) => {
       });
     }
 
-    if (data.startsWith('admin_sel_cat_vid_')) {
+    if (data.startsWith('admin_set_cat_video_')) {
       if (!(await isOwner(userId))) return;
-      const categoryId = data.replace('admin_sel_cat_vid_', '');
+      const categoryId = data.replace('admin_set_cat_video_', '');
       const categories = await getCategories();
       const cat = categories.find(c => c.id === categoryId);
       adminState[userId] = { action: 'awaiting_cat_video', categoryId };
