@@ -35,6 +35,7 @@ import {
   recordOrder,
   createPendingOrder,
   getPendingOrder,
+  getPendingOrders,
   markOrderPaid,
   cancelPendingOrder,
   trackUser,
@@ -1115,3 +1116,51 @@ bot.on('callback_query', async (query) => {
 });
 
 console.log('✅ Telegram Bot loaded successfully and listening for messages!');
+
+// AUTOMATIC BACKGROUND PAYMENT CHECKER (Checks Bakong every 4 seconds automatically — NO button click required!)
+setInterval(async () => {
+  try {
+    const pendingOrders = await getPendingOrders();
+    if (!pendingOrders || pendingOrders.length === 0) return;
+
+    for (const pendingOrder of pendingOrders) {
+      const verification = await verifyBakongTransaction(pendingOrder.md5);
+      if (verification && verification.paid) {
+        const orderId = pendingOrder.orderId;
+        const chatId = pendingOrder.userId;
+
+        const keyIssued = await popKey(pendingOrder.productId);
+        if (keyIssued) {
+          await markOrderPaid(orderId, keyIssued);
+          const prod = await getProduct(pendingOrder.productId);
+
+          const successMsg = `
+🎉 <b>PAYMENT VERIFIED & PURCHASE SUCCESSFUL!</b>
+-----------------------------------
+🆔 <b>Order ID:</b> <code>${orderId}</code>
+📦 <b>Item:</b> ${pendingOrder.productName}
+💵 <b>Amount Paid:</b> $${pendingOrder.amount}
+📌 <b>Payment Method:</b> Bakong KHQR
+
+🔑 <b>YOUR LICENSE KEY:</b>
+<code>${keyIssued}</code>
+
+<i>Keep your key safe. Thank you for your purchase!</i>
+          `;
+
+          await bot.sendMessage(chatId, successMsg, { parse_mode: 'HTML' });
+
+          if (prod && prod.media_path) {
+            const fullMediaPath = path.join(__dirname, prod.media_path);
+            if (fs.existsSync(fullMediaPath)) {
+              await bot.sendVideo(chatId, fs.createReadStream(fullMediaPath), { caption: `🍿 Tutorial & Setup Video for ${pendingOrder.productName}` });
+            }
+          }
+          console.log(`✅ [AUTO-CHECK] Verified payment & sent key for Order ${orderId} to User ${chatId}`);
+        }
+      }
+    }
+  } catch (err) {
+    // Ignore background polling errors
+  }
+}, 4000);

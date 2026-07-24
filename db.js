@@ -212,6 +212,11 @@ export async function createPendingOrder({ userId, username, productId, productN
   return pendingOrder;
 }
 
+export async function getPendingOrders() {
+  const db = await readDB();
+  return db.pending_orders || [];
+}
+
 export async function getPendingOrder(orderId) {
   const db = await readDB();
   return (db.pending_orders || []).find(o => o.orderId === orderId);
