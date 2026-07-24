@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const DEFAULT_MERCHANT_ID = 'hut_soksitchey1@aclb';
+const DEFAULT_MERCHANT_ID = 'kim_chhayhong@bkrt';
 
 /**
  * Parse numeric USD amount from string or number
