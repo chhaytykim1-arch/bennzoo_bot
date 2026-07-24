@@ -64,12 +64,37 @@ const bot = new TelegramBot(token, {
   }
 });
 
-// Suppress transient connection reset errors
+// Helper to extract clean error messages without dumping internal HTTPS/Agent object graphs
+function getErrorMessage(err) {
+  if (!err) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  return err.response?.body?.description || err.message || err.code || String(err);
+}
+
+// Suppress transient connection reset & polling conflict errors
 bot.on('polling_error', (error) => {
-  if (error.code === 'EFATAL' || (error.message && error.message.includes('ECONNRESET'))) {
+  const msg = getErrorMessage(error);
+  if (
+    error?.code === 'EFATAL' ||
+    msg.includes('ECONNRESET') ||
+    msg.includes('ETIMEDOUT') ||
+    msg.includes('EFATAL') ||
+    msg.includes('terminated by other getUpdates')
+  ) {
     return;
   }
-  console.error('Polling error:', error.message || error);
+  console.error('⚠️ Polling error:', msg);
+});
+
+// Global process error handlers to prevent crashes and clean up log output
+process.on('unhandledRejection', (reason) => {
+  const msg = getErrorMessage(reason);
+  console.error('⚠️ Unhandled Rejection:', msg);
+});
+
+process.on('uncaughtException', (err) => {
+  const msg = getErrorMessage(err);
+  console.error('⚠️ Uncaught Exception:', msg);
 });
 
 import http from 'http';
@@ -78,9 +103,38 @@ const port = process.env.PORT || 3000;
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('Telegram Bot is running live 24/7!\n');
-}).listen(port, () => {
+}).listen(port, '0.0.0.0', () => {
   console.log(`🌐 Health check HTTP server listening on port ${port}`);
 });
+
+// Keep-alive self-ping to stop Render free-tier from sleeping the service.
+// Render free web services spin down after ~15 min without INBOUND HTTP
+// traffic. Telegram polling is outbound and does not count, so the instance
+// sleeps and the bot dies after a few minutes. Pinging our own URL keeps it
+// awake 24/7.
+function startKeepAlive() {
+  const selfUrl = process.env.RENDER_EXTERNAL_URL;
+  // Only run on Render (RENDER_EXTERNAL_URL is injected there automatically).
+  if (!selfUrl) {
+    console.log('ℹ️ Keep-alive skipped (no RENDER_EXTERNAL_URL, likely local).');
+    return;
+  }
+
+  const INTERVAL_MS = 4 * 60 * 1000; // every 4 min, well under the ~15 min idle window
+
+  setInterval(async () => {
+    try {
+      const res = await fetch(selfUrl, { method: 'GET' });
+      console.log(`💓 Keep-alive ping -> ${selfUrl} (${res.status})`);
+    } catch (err) {
+      console.error(`⚠️ Keep-alive ping failed: ${err.message || err}`);
+    }
+  }, INTERVAL_MS);
+
+  console.log(`💓 Keep-alive enabled, pinging ${selfUrl} every ${INTERVAL_MS / 60000} min.`);
+}
+
+startKeepAlive();
 
 console.log('🤖 Telegram Store & Key Delivery Bot is starting...');
 
@@ -1177,7 +1231,7 @@ bot.on('callback_query', async (query) => {
     }
 
   } catch (err) {
-    console.error('Error handling callback query:', err);
+    console.error('Error handling callback query:', getErrorMessage(err));
   }
 });
 
