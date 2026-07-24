@@ -1,0 +1,86 @@
+{
+  "owner_id": "7984481387",
+  "owner_ids": [
+    "7984481387",
+    "7283817695"
+  ],
+  "admin_username": "BENZZO_168",
+  "banner_image": null,
+  "categories": [
+    {
+      "id": "cat_1784802939147",
+      "name": "🔮 Fluorite FreeFire iOS",
+      "description": ""
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_1784802974860",
+      "category_id": "cat_1784802939147",
+      "name": "🔮 Fluorite FF iOS 1 Day",
+      "price": "$2.00",
+      "description": "VIP Key",
+      "keys": [
+        "alsdhakdlashdakjsdhjaskdjasjhd"
+      ],
+      "media_path": "video_2026-07-23_16-32-58.mp4"
+    }
+  ],
+  "orders": [
+    {
+      "orderId": "ORD-PN05WVZ",
+      "userId": 7283817695,
+      "username": "kaixite",
+      "productId": "prod_1784802974860",
+      "productName": "🔮 Fluorite FF iOS 1 Day",
+      "keyIssued": "askashdaskdasdaskjdaslkda",
+      "date": "2026-07-23T10:48:51.933Z"
+    }
+  ],
+  "users": [
+    {
+      "userId": 7283817695,
+      "username": "kaixite",
+      "firstName": "soksithchey",
+      "joinedAt": "2026-07-23T09:40:00.433Z"
+    },
+    {
+      "userId": 7984481387,
+      "username": "BENZZO_168",
+      "firstName": "BENZZO Gaming",
+      "joinedAt": "2026-07-23T09:44:02.138Z"
+    },
+    {
+      "userId": 8725944064,
+      "username": "",
+      "firstName": "Chan",
+      "joinedAt": "2026-07-23T09:51:17.473Z"
+    }
+  ],
+  "pending_orders": [
+    {
+      "orderId": "ORD-I4QOPNJ",
+      "userId": 7283817695,
+      "username": "kaixite",
+      "productId": "prod_1784802974860",
+      "productName": "🔮 Fluorite FF iOS 1 Day",
+      "amount": 2,
+      "priceStr": "$2.00",
+      "md5": "f5019d1ae549d3f0d506dab9bfe1ba3b",
+      "status": "PENDING",
+      "createdAt": "2026-07-23T15:46:32.443Z"
+    },
+    {
+      "orderId": "ORD-AEMI2H9",
+      "userId": 7283817695,
+      "username": "kaixite",
+      "productId": "prod_1784802974860",
+      "productName": "🔮 Fluorite FF iOS 1 Day",
+      "amount": 2,
+      "priceStr": "$2.00",
+      "md5": "b0e06004713648632773a7df3a66749c",
+      "status": "PENDING",
+      "createdAt": "2026-07-23T15:46:32.552Z"
+    }
+  ]
+}

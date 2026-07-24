@@ -1,0 +1,17 @@
+{
+  "name": "telegram-store-bot",
+  "version": "1.0.0",
+  "description": "Telegram Digital Goods & Key Delivery Store Bot",
+  "main": "bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "bakong-khqr": "^1.0.20",
+    "dotenv": "^16.4.5",
+    "fs-extra": "^11.2.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "qrcode": "^1.5.4"
+  }
+}
